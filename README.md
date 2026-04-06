@@ -1,4 +1,4 @@
-# ⚔️ Project: PPPI Var6 (Soulslike RPG)
+# ⚔️ Project: PPPI Var6 (Soulslike RPG) V2
 
 Концептуальный план разработки Action-RPG с механиками в духе серии Dark Souls.
 
