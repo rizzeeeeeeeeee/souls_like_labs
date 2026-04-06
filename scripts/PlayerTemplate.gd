@@ -1,90 +1,126 @@
-extends KinematicBody
+## Class: "scripts/PlayerTemplate.gd"
+## Inherits: CharacterBody3D < PhysicsBody3D < CollisionObject3D < Node3D < Node < Object
+##
+## Скрипт управления персонажем в стиле Soulslike. 
+## Обрабатывает передвижение, боевку (комбо), перекаты и дерево анимаций.
+extends CharacterBody3D
 
-# Allows to pick your animation tree from the inspector
-export (NodePath) var PlayerAnimationTree 
-export onready var animation_tree = get_node(PlayerAnimationTree)
-onready var playback = animation_tree.get("parameters/playback");
+## Путь к узлу AnimationTree
+@export var PlayerAnimationTree: NodePath 
+## Узел дерева анимаций
+@onready var animation_tree = get_node(PlayerAnimationTree)
+## Узел управления потоком анимаций (AnimationNodeStateMachinePlayback)
+@onready var playback = animation_tree.get("parameters/playback")
 
-# Allows to pick your chracter's mesh from the inspector
-export (NodePath) var PlayerCharacterMesh
-export onready var player_mesh = get_node(PlayerCharacterMesh)
+## Путь к узлу меша игрока
+@export var PlayerCharacterMesh: NodePath
+## Узел меша (модели) игрока
+@onready var player_mesh = get_node(PlayerCharacterMesh)
 
-# Gamplay mechanics and Inspector tweakables
-export var gravity = 9.8
-export var jump_force = 9
-export var walk_speed = 1.3
-export var run_speed = 5.5
-export var dash_power = 12 # Controls roll and big attack speed boosts
+@export_group("Параметры движения")
+## Сила гравитации
+@export var gravity: float = 9.8
+## Сила прыжка
+@export var jump_force: float = 9
+## Скорость ходьбы
+@export var walk_speed: float = 1.3
+## Скорость бега
+@export var run_speed: float = 5.5
+## Сила рывка (для перекатов и спец-атак)
+@export var dash_power: float = 12 
 
-# Animation node names
-var roll_node_name = "Roll"
-var idle_node_name = "Idle"
-var walk_node_name = "Walk"
-var run_node_name = "Run"
-var jump_node_name = "Jump"
-var attack1_node_name = "Attack1"
-var attack2_node_name = "Attack2"
-var bigattack_node_name = "BigAttack"
+## Имя узла анимации переката
+var roll_node_name: String = "Roll"
+## Имя узла анимации покоя
+var idle_node_name: String = "Idle"
+## Имя узла анимации ходьбы
+var walk_node_name: String = "Walk"
+## Имя узла анимации бега
+var run_node_name: String = "Run"
+## Имя узла анимации прыжка
+var jump_node_name: String = "Jump"
+## Имя узла первой атаки
+var attack1_node_name: String = "Attack1"
+## Имя узла второй атаки
+var attack2_node_name: String = "Attack2"
+## Имя узла сильной атаки
+var bigattack_node_name: String = "BigAttack"
 
-# Condition States
-var is_attacking = bool()
-var is_rolling = bool()
-var is_walking = bool()
-var is_running = bool()
+## Флаг состояния атаки
+var is_attacking: bool = false
+## Флаг состояния переката
+var is_rolling: bool = false
+## Флаг состояния ходьбы
+var is_walking: bool = false
+## Флаг состояния бега
+var is_running: bool = false
 
-# Physics values
-var direction = Vector3()
-var horizontal_velocity = Vector3()
-var aim_turn = float()
-var movement = Vector3()
-var vertical_velocity = Vector3()
-var movement_speed = int()
-var angular_acceleration = int()
-var acceleration = int()
+## Вектор направления движения
+var direction: Vector3 = Vector3()
+## Горизонтальная составляющая скорости
+var horizontal_velocity: Vector3 = Vector3()
+## Значение поворота при прицеливании
+var aim_turn: float = 0.0
+## Результирующий вектор перемещения
+var movement: Vector3 = Vector3()
+## Вертикальная составляющая скорости (гравитация/прыжок)
+var vertical_velocity: Vector3 = Vector3()
+## Текущая скорость движения
+var movement_speed: float = 0.0
+## Угловое ускорение поворота
+var angular_acceleration: float = 10.0
+## Общее ускорение персонажа
+var acceleration: float = 15.0
 
-func _ready(): # Camera based Rotation
+func _ready():
 	direction = Vector3.BACK.rotated(Vector3.UP, $Camroot/h.global_transform.basis.get_euler().y)
 
-func _input(event): # All major mouse and button input events
+func _input(event):
 	if event is InputEventMouseMotion:
-		aim_turn = -event.relative.x * 0.015 # animates player with mouse movement while aiming 
+		aim_turn = -event.relative.x * 0.015 
 	
-	if event.is_action_pressed("aim"): # Aim button triggers a strafe walk and camera mechanic
+	if event.is_action_pressed("aim"):
 		direction = $Camroot/h.global_transform.basis.z
 
+## Выполняет механику переката. Проверяет возможность прерывания текущих анимаций и применяет импульс [member dash_power].
 func roll():
-## Dodge button input with dash and interruption to basic actions
 	if Input.is_action_just_pressed("roll"):
-		if !roll_node_name in playback.get_current_node() and !jump_node_name in playback.get_current_node() and !bigattack_node_name in playback.get_current_node():
-			playback.start(roll_node_name) #"start" not "travel" to speedy teleport to the roll!
+		var current = playback.get_current_node()
+		if !roll_node_name in current and !jump_node_name in current and !bigattack_node_name in current:
+			playback.start(roll_node_name)
 			horizontal_velocity = direction * dash_power
 			
-func attack1(): # If not doing other things, start attack1
+## Инициирует первую атаку в цепочке комбо. Возможна только при нахождении на земле в состоянии покоя или ходьбы.
+func attack1():
 	if (idle_node_name in playback.get_current_node() or walk_node_name in playback.get_current_node()) and is_on_floor():
 		if Input.is_action_just_pressed("attack"):
-			if (is_attacking == false):
+			if !is_attacking:
 				playback.travel(attack1_node_name)
 				
-func attack2(): # If attack1 is animating, combo into attack 2
-	if attack1_node_name in playback.get_current_node(): # Big Attack if sprinting, adds a dash
+## Переводит анимацию во вторую фазу атаки, если в данный момент проигрывается [member attack1_node_name].
+func attack2():
+	if attack1_node_name in playback.get_current_node():
 		if Input.is_action_just_pressed("attack"):
 			playback.travel(attack2_node_name)
 			
-func attack3(): # If attack2 is animating, combo into attack 3. This is a template.
-	if attack1_node_name in playback.get_current_node(): 
+## Шаблон для реализации третьей атаки в цепочке комбо.
+func attack3():
+	if attack2_node_name in playback.get_current_node(): 
 		if Input.is_action_just_pressed("attack"):
-			pass #no current animation, but add it's playback here!
+			pass 
 	
-func rollattack(): # If attack pressed while rolling, do a special attack afterwards.
+## Выполняет специальную атаку из состояния переката, если нажата клавиша атаки.
+func rollattack():
 	if roll_node_name in playback.get_current_node(): 
 		if Input.is_action_just_pressed("attack"):
-			playback.travel(bigattack_node_name) #change this animation for a different attack
+			playback.travel(bigattack_node_name)
 			
-func bigattack(): # If attack pressed while springing, do a special attack
-	if run_node_name in playback.get_current_node(): # Big Attack if sprinting, adds a dash
+## Выполняет усиленную атаку из состояния бега, добавляя импульс движения.
+func bigattack():
+	if run_node_name in playback.get_current_node():
 		if Input.is_action_just_pressed("attack"):
 			horizontal_velocity = direction * dash_power
-			playback.travel(bigattack_node_name) #Add and Change this animation node for a different attack
+			playback.travel(bigattack_node_name)
 	
 func _physics_process(delta):
 	rollattack()
@@ -93,91 +129,76 @@ func _physics_process(delta):
 	attack2()
 	roll()
 	
-	var on_floor = is_on_floor() # State control for is jumping/falling/landing
+	var on_floor = is_on_floor()
 	var h_rot = $Camroot/h.global_transform.basis.get_euler().y
 	
 	movement_speed = 0
 	angular_acceleration = 10
 	acceleration = 15
 
-	# Gravity mechanics and prevent slope-sliding
-	if not is_on_floor(): 
+	if not on_floor: 
 		vertical_velocity += Vector3.DOWN * gravity * 2 * delta
 	else: 
 		vertical_velocity = -get_floor_normal() * gravity / 3
 	
-	# Defining attack state: Add more attacks animations here as you add more!
-	if (attack1_node_name in playback.get_current_node()) or (attack2_node_name in playback.get_current_node()) or (bigattack_node_name in playback.get_current_node()): 
+	var current_node = playback.get_current_node()
+	if (attack1_node_name in current_node) or (attack2_node_name in current_node) or (bigattack_node_name in current_node): 
 		is_attacking = true
 	else: 
 		is_attacking = false
 
-# Giving BigAttack some Slide
-	if bigattack_node_name in playback.get_current_node(): 
+	if bigattack_node_name in current_node: 
 		acceleration = 3
 
-	# Defining Roll state and limiting movment during rolls
-	if roll_node_name in playback.get_current_node(): 
+	if roll_node_name in current_node: 
 		is_rolling = true
 		acceleration = 2
 		angular_acceleration = 2
 	else: 
 		is_rolling = false
 	
-#	Jump input and Mechanics
-	if Input.is_action_just_pressed("jump") and ((is_attacking != true) and (is_rolling != true)) and is_on_floor():
+	if Input.is_action_just_pressed("jump") and !is_attacking and !is_rolling and on_floor:
 		vertical_velocity = Vector3.UP * jump_force
 		
-	# Movement input, state and mechanics. *Note: movement stops if attacking
-	if (Input.is_action_pressed("forward") ||  Input.is_action_pressed("backward") ||  Input.is_action_pressed("left") ||  Input.is_action_pressed("right")):
-		direction = Vector3(Input.get_action_strength("left") - Input.get_action_strength("right"),
-					0,
-					Input.get_action_strength("forward") - Input.get_action_strength("backward"))
+	var input_dir = Vector2(
+		Input.get_action_strength("left") - Input.get_action_strength("right"),
+		Input.get_action_strength("forward") - Input.get_action_strength("backward")
+	)
+	
+	if input_dir.length() > 0:
+		direction = Vector3(input_dir.x, 0, input_dir.y)
 		direction = direction.rotated(Vector3.UP, h_rot).normalized()
 		is_walking = true
 		
-	# Sprint input, state and speed
-		if (Input.is_action_pressed("sprint")) and (is_walking == true): 
+		if Input.is_action_pressed("sprint") and is_walking: 
 			movement_speed = run_speed
 			is_running = true
-		else: # Walk State and speed
+		else: 
 			movement_speed = walk_speed
 			is_running = false
 	else: 
 		is_walking = false
 		is_running = false
 		
-	if Input.is_action_pressed("aim"):  # Aim/Strafe input and  mechanics
+	if Input.is_action_pressed("aim"):
 		player_mesh.rotation.y = lerp_angle(player_mesh.rotation.y, $Camroot/h.rotation.y, delta * angular_acceleration)
-
-	else: # Normal turn movement mechanics
+	else:
 		player_mesh.rotation.y = lerp_angle(player_mesh.rotation.y, atan2(direction.x, direction.z) - rotation.y, delta * angular_acceleration)
 	
-	# Movment mechanics with limitations during rolls/attacks
-	if ((is_attacking == true) or (is_rolling == true)): 
-		horizontal_velocity = horizontal_velocity.linear_interpolate(direction.normalized() * .01 , acceleration * delta)
-	else: # Movement mechanics without limitations 
-		horizontal_velocity = horizontal_velocity.linear_interpolate(direction.normalized() * movement_speed, acceleration * delta)
+	if is_attacking or is_rolling: 
+		horizontal_velocity = horizontal_velocity.lerp(direction.normalized() * 0.01, acceleration * delta)
+	else: 
+		horizontal_velocity = horizontal_velocity.lerp(direction.normalized() * movement_speed, acceleration * delta)
 	
-	# The Physics Sauce. Movement, gravity and velocity in a perfect dance.
-	movement.z = horizontal_velocity.z + vertical_velocity.z
-	movement.x = horizontal_velocity.x + vertical_velocity.x
-	movement.y = vertical_velocity.y
-	move_and_slide(movement, Vector3.UP)
+	velocity.z = horizontal_velocity.z + vertical_velocity.z
+	velocity.x = horizontal_velocity.x + vertical_velocity.x
+	velocity.y = vertical_velocity.y
+	
+	move_and_slide()
 
-	# ========= State machine controls =========
-	# The booleans of the on_floor, is_walking etc, trigger the 
-	# advanced conditions of the AnimationTree, controlling animation paths
-	
-	# on_floor manages jumps and falls
 	animation_tree["parameters/conditions/IsOnFloor"] = on_floor
 	animation_tree["parameters/conditions/IsInAir"] = !on_floor
-	# Moving and running respectively
 	animation_tree["parameters/conditions/IsWalking"] = is_walking
 	animation_tree["parameters/conditions/IsNotWalking"] = !is_walking
 	animation_tree["parameters/conditions/IsRunning"] = is_running
 	animation_tree["parameters/conditions/IsNotRunning"] = !is_running
-	# Attacks and roll don't use these boolean conditions, instead
-	# they use "travel" or "start" to one-shot their animations.
-	
-	

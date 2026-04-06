@@ -7,7 +7,7 @@
 [ext_resource path="res://mat/HunterBody.tres" type="Material" id=5]
 [ext_resource path="res://mat/HunterGear.tres" type="Material" id=6]
 
-[sub_resource type="CapsuleShape" id=48]
+[sub_resource type="CapsuleShape3D" id=48]
 radius = 0.3047
 height = 1.20199
 
@@ -30,10 +30,10 @@ animation = "Jump"
 animation = "Roll"
 
 [sub_resource type="AnimationNodeAnimation" id=23]
-animation = "Run-loop"
+animation = "Run"
 
 [sub_resource type="AnimationNodeAnimation" id=24]
-animation = "Walk-loop"
+animation = "Walk"
 
 [sub_resource type="AnimationNodeStateMachineTransition" id=25]
 xfade_time = 0.2
@@ -132,26 +132,26 @@ graph_offset = Vector2( 0, -119.506 )
 
 [sub_resource type="AnimationNodeStateMachinePlayback" id=50]
 
-[node name="Hunter" type="KinematicBody"]
+[node name="Hunter" type="CharacterBody3D"]
 script = ExtResource( 2 )
 PlayerAnimationTree = NodePath("AnimationTree")
 PlayerCharacterMesh = NodePath("Hunter")
 
-[node name="CollisionShape" type="CollisionShape" parent="."]
-transform = Transform( -1, 0, 0, 0, 0, -1, 0, -1, 0, 0, 0.917525, 0 )
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D( -1, 0, 0, 0, 0, -1, 0, -1, 0, 0, 0.917525, 0 )
 shape = SubResource( 48 )
 
-[node name="Camroot" type="Spatial" parent="."]
+[node name="Camroot" type="Node3D" parent="."]
 script = ExtResource( 1 )
 PlayerCharacterMesh = NodePath("../Hunter")
 
-[node name="h" type="Spatial" parent="Camroot"]
+[node name="h" type="Node3D" parent="Camroot"]
 
-[node name="v" type="Spatial" parent="Camroot/h"]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.41498, 0 )
+[node name="v" type="Node3D" parent="Camroot/h"]
+transform = Transform3D( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.41498, 0 )
 
-[node name="Camera" type="ClippedCamera" parent="Camroot/h/v"]
-transform = Transform( -1, 0, -1.50996e-07, 0, 1, 0, 1.50996e-07, 0, -1, -4.03244e-07, 0, -2.67056 )
+[node name="Camera3D" type="Camera3D" parent="Camroot/h/v"]
+transform = Transform3D( -1, 0, -1.50996e-07, 0, 1, 0, 1.50996e-07, 0, -1, -4.03244e-07, 0, -2.67056 )
 current = true
 process_mode = 1
 
@@ -163,7 +163,7 @@ tree_root = SubResource( 49 )
 anim_player = NodePath("../Hunter/AnimationPlayer")
 active = true
 process_mode = 0
-root_motion_track = NodePath("Skeleton:mixamorigSpine1")
+root_motion_track = NodePath("Skeleton3D:mixamorigSpine1")
 parameters/playback = SubResource( 50 )
 parameters/conditions/IsInAir = false
 parameters/conditions/IsNotMoving = false
@@ -175,41 +175,41 @@ parameters/conditions/IsWalking = false
 
 [node name="Hunter" parent="." instance=ExtResource( 3 )]
 
-[node name="Skeleton" parent="Hunter/Armature" index="0"]
-bones/54/bound_children = [ NodePath("BoneAttachment") ]
+[node name="Skeleton3D" parent="Hunter/Armature" index="0"]
+bones/54/bound_children = [ NodePath("BoneAttachment3D") ]
 
-[node name="Body" parent="Hunter/Armature/Skeleton" index="0"]
+[node name="Body" parent="Hunter/Armature/Skeleton3D" index="0"]
 material/0 = ExtResource( 5 )
 
-[node name="Boots" parent="Hunter/Armature/Skeleton" index="1"]
+[node name="Boots" parent="Hunter/Armature/Skeleton3D" index="1"]
 material/0 = ExtResource( 6 )
 
-[node name="Coat" parent="Hunter/Armature/Skeleton" index="2"]
+[node name="Coat" parent="Hunter/Armature/Skeleton3D" index="2"]
 material/0 = ExtResource( 6 )
 
-[node name="Eyes" parent="Hunter/Armature/Skeleton" index="3"]
+[node name="Eyes" parent="Hunter/Armature/Skeleton3D" index="3"]
 material/0 = ExtResource( 5 )
 
-[node name="Gloves" parent="Hunter/Armature/Skeleton" index="4"]
+[node name="Gloves" parent="Hunter/Armature/Skeleton3D" index="4"]
 material/0 = ExtResource( 6 )
 
-[node name="Harness" parent="Hunter/Armature/Skeleton" index="5"]
+[node name="Harness" parent="Hunter/Armature/Skeleton3D" index="5"]
 material/0 = ExtResource( 6 )
 
-[node name="Hat" parent="Hunter/Armature/Skeleton" index="6"]
+[node name="Hat" parent="Hunter/Armature/Skeleton3D" index="6"]
 material/0 = ExtResource( 6 )
 
-[node name="Pants" parent="Hunter/Armature/Skeleton" index="7"]
+[node name="Pants" parent="Hunter/Armature/Skeleton3D" index="7"]
 material/0 = ExtResource( 6 )
 
-[node name="Vest" parent="Hunter/Armature/Skeleton" index="8"]
+[node name="Vest" parent="Hunter/Armature/Skeleton3D" index="8"]
 material/0 = ExtResource( 6 )
 
-[node name="BoneAttachment" type="BoneAttachment" parent="Hunter/Armature/Skeleton" index="9"]
-transform = Transform( 0.0242532, -0.125277, 0.991824, 0.717615, -0.688551, -0.104518, 0.696016, 0.714285, 0.0732004, -0.532637, 0.976459, -0.116829 )
+[node name="BoneAttachment3D" type="BoneAttachment3D" parent="Hunter/Armature/Skeleton3D" index="9"]
+transform = Transform3D( 0.0242532, -0.125277, 0.991824, 0.717615, -0.688551, -0.104518, 0.696016, 0.714285, 0.0732004, -0.532637, 0.976459, -0.116829 )
 bone_name = "mixamorig_RightHandIndex1"
 
-[node name="Ax" parent="Hunter/Armature/Skeleton/BoneAttachment" instance=ExtResource( 4 )]
-transform = Transform( 0.1778, -0.0862002, 0.775214, -0.590049, -0.534873, 0.0758555, 0.510128, -0.588628, -0.182453, 0.0400453, 0.00196314, 0.0164107 )
+[node name="Ax" parent="Hunter/Armature/Skeleton3D/BoneAttachment3D" instance=ExtResource( 4 )]
+transform = Transform3D( 0.1778, -0.0862002, 0.775214, -0.590049, -0.534873, 0.0758555, 0.510128, -0.588628, -0.182453, 0.0400453, 0.00196314, 0.0164107 )
 
 [editable path="Hunter"]
