@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CameraControl - Документация</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #34495e;
+            margin-top: 30px;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 8px;
+        }
+        h3 {
+            color: #7f8c8d;
+            margin-top: 20px;
+        }
+        .class-info {
+            background-color: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .description {
+            background-color: #e8f4f8;
+            padding: 15px;
+            border-left: 4px solid #3498db;
+            margin: 15px 0;
+        }
+        .property, .method {
+            background-color: #f9f9f9;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 4px solid #2ecc71;
+            border-radius: 4px;
+        }
+        .property-name, .method-name {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            color: #e74c3c;
+            font-size: 1.1em;
+        }
+        .property-type {
+            font-family: 'Courier New', monospace;
+            color: #9b59b6;
+            font-style: italic;
+        }
+        .export-tag {
+            display: inline-block;
+            background-color: #3498db;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 0.85em;
+            margin-left: 10px;
+        }
+        .group-tag {
+            display: inline-block;
+            background-color: #1abc9c;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 0.85em;
+            margin-left: 10px;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        .inheritance {
+            color: #7f8c8d;
+            font-style: italic;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #34495e;
+            color: white;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>CameraControl</h1>
+        
+        <div class="class-info">
+            <p><strong>Путь:</strong> <code>scripts/CameraControl.gd</code></p>
+            <p class="inheritance"><strong>Наследование:</strong> Node3D &lt; Node &lt; Object</p>
+        </div>
+
+        <div class="description">
+            <p><strong>Описание:</strong> Скрипт управления камерой от третьего лица (TPS). Поддерживает управление мышью, геймпадом и автоматический поворот за игроком.</p>
+        </div>
+
+        <h2>Экспортируемые свойства</h2>
+
+        <div class="property">
+            <div class="property-name">PlayerCharacterMesh <span class="export-tag">@export</span></div>
+            <div class="property-type">Тип: NodePath</div>
+            <p>Путь к узлу меша игрока для ориентации камеры</p>
+        </div>
+
+        <h3>Группа: "Настройки ограничений" <span class="group-tag">@export_group</span></h3>
+
+        <div class="property">
+            <div class="property-name">cam_v_max <span class="export-tag">@export</span></div>
+            <div class="property-type">Тип: int</div>
+            <p>Максимальный угол наклона камеры вверх (рекомендуется 75)</p>
+        </div>
+
+        <div class="property">
+            <div class="property-name">cam_v_min <span class="export-tag">@export</span></div>
+            <div class="property-type">Тип: int</div>
+            <p>Минимальный угол наклона камеры вниз (рекомендуется -55)</p>
+        </div>
+
+        <h3>Группа: "Чувствительность" <span class="group-tag">@export_group</span></h3>
+
+        <div class="property">
+            <div class="property-name">joystick_sensitivity <span class="export-tag">@export</span></div>
+            <div class="property-type">Тип: int</div>
+            <p>Множитель чувствительности для правого стика геймпада</p>
+        </div>
+
+        <h3>Группа: "Плавность" <span class="group-tag">@export_group</span></h3>
+
+        <h2>Внутренние свойства</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Имя</th>
+                    <th>Тип</th>
+                    <th>Описание</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>camrot_h</code></td>
+                    <td>float</td>
+                    <td>Текущий поворот камеры по горизонтали</td>
+                </tr>
+                <tr>
+                    <td><code>camrot_v</code></td>
+                    <td>float</td>
+                    <td>Текущий поворот камеры по вертикали</td>
+                </tr>
+                <tr>
+                    <td><code>h_sensitivity</code></td>
+                    <td>float</td>
+                    <td>Чувствительность мыши по горизонтали (по умолчанию: 0.1)</td>
+                </tr>
+                <tr>
+                    <td><code>v_sensitivity</code></td>
+                    <td>float</td>
+                    <td>Чувствительность мыши по вертикали (по умолчанию: 0.1)</td>
+                </tr>
+                <tr>
+                    <td><code>rot_speed_multiplier</code></td>
+                    <td>float</td>
+                    <td>Множитель скорости авто-поворота. Чем меньше значение, тем больше радиус вращения (по умолчанию: 0.15)</td>
+                </tr>
+                <tr>
+                    <td><code>h_acceleration</code></td>
+                    <td>int</td>
+                    <td>Ускорение сглаживания по горизонтали (по умолчанию: 10)</td>
+                </tr>
+                <tr>
+                    <td><code>v_acceleration</code></td>
+                    <td>int</td>
+                    <td>Ускорение сглаживания по вертикали (по умолчанию: 10)</td>
+                </tr>
+                <tr>
+                    <td><code>joyview</code></td>
+                    <td>Vector2</td>
+                    <td>Вектор ввода с правого стика геймпада</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>Методы</h2>
+
+        <div class="method">
+            <div class="method-name">_ready()</div>
+            <p><strong>Описание:</strong> Инициализация камеры при загрузке сцены.</p>
+            <p><strong>Выполняемые действия:</strong></p>
+            <ul>
+                <li>Захват курсора мыши внутри окна игры</li>
+                <li>Исключение родительского узла (игрока) из коллизий камеры (RayCast)</li>
+            </ul>
+        </div>
+
+        <div class="method">
+            <div class="method-name">_input(event)</div>
+            <p><strong>Параметры:</strong></p>
+            <ul>
+                <li><code>event</code> - событие ввода</li>
+            </ul>
+            <p><strong>Описание:</strong> Обработка движения мыши для вращения камеры.</p>
+            <p><strong>Логика:</strong></p>
+            <ul>
+                <li>Запускает таймер задержки для отключения авто-поворота при ручном управлении</li>
+                <li>Обновляет углы поворота камеры на основе движения мыши с учетом чувствительности</li>
+            </ul>
+        </div>
+
+        <div class="method">
+            <div class="method-name">_joystick_input()</div>
+            <p><strong>Описание:</strong> Обрабатывает ввод с джойстика/геймпада для вращения камеры.</p>
+            <p><strong>Используемые действия:</strong></p>
+            <ul>
+                <li><code>lookleft</code> / <code>lookright</code></li>
+                <li><code>lookup</code> / <code>lookdown</code></li>
+            </ul>
+            <p><strong>Логика:</strong></p>
+            <ul>
+                <li>Запускает таймер задержки при активном вводе</li>
+                <li>Вычисляет вектор направления на основе силы нажатия стиков</li>
+                <li>Обновляет углы поворота камеры с учетом чувствительности джойстика</li>
+            </ul>
+        </div>
+
+        <div class="method">
+            <div class="method-name">_physics_process(delta)</div>
+            <p><strong>Параметры:</strong></p>
+            <ul>
+                <li><code>delta</code> (float) - время с последнего физического кадра</li>
+            </ul>
+            <p><strong>Описание:</strong> Основной цикл обработки поведения камеры.</p>
+            <p><strong>Выполняемые действия:</strong></p>
+            <ul>
+                <li>Опрос ввода с геймпада</li>
+                <li>Ограничение вертикального вращения (предотвращение "мертвой петли")</li>
+                <li>Расчет скорости автоматического следования камеры за мешем персонажа</li>
+                <li>При отсутствии ручного ввода - плавное следование камеры за игроком</li>
+                <li>При ручном управлении - применение сглаживания к углам поворота</li>
+                <li>Применение вертикального вращения к узлу наклона</li>
+            </ul>
+        </div>
+
+        <h2>Логика работы</h2>
+
+        <div class="description">
+            <h3>Режимы управления:</h3>
+            <ol>
+                <li><strong>Ручное управление (мышь/геймпад):</strong> Камера поворачивается в соответствии с вводом пользователя. Активируется таймер задержки для временного отключения авто-поворота.</li>
+                <li><strong>Автоматическое следование:</strong> Когда таймер задержки истекает и нет активного ввода, камера плавно следует за направлением меша персонажа. Скорость следования зависит от скорости движения персонажа.</li>
+            </ol>
+
+            <h3>Система сглаживания:</h3>
+            <p>Все повороты камеры применяются через функцию <code>lerp</code> для плавности движения. Скорость сглаживания регулируется параметрами <code>h_acceleration</code> и <code>v_acceleration</code>.</p>
+
+            <h3>Ограничения:</h3>
+            <p>Вертикальное вращение камеры ограничено диапазоном от <code>cam_v_min</code> до <code>cam_v_max</code> для предотвращения неестественных поворотов.</p>
+        </div>
+
+        <h2>Требования к сцене</h2>
+        <ul>
+            <li>Узел <code>$h</code> - для горизонтального вращения</li>
+            <li>Узел <code>$h/v</code> - для вертикального наклона</li>
+            <li>Узел <code>$h/v/Camera3D</code> - сама камера</li>
+            <li>Узел <code>$control_stay_delay</code> - таймер для задержки переключения режимов</li>
+            <li>Родительский узел должен иметь свойство <code>horizontal_velocity</code></li>
+        </ul>
+    </div>
+</body>
+</html>
