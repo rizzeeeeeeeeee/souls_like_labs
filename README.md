@@ -6,7 +6,7 @@
 
 ### 1. Анализ оборудования и инициализация
 * Анализ характеристик ПК игрока и автоподстройка параметров графики при старте (выполняет движок).
-* **Пример геймплея:** [Прохождение сложного босса на YouTube](https://www.youtube.com/watch?v=uARXSa_6XpE).
+* **Пример геймплея:** [Стримы папича YouTube]([https://www.youtube.com/watch?v=uARXSa_6XpE](https://www.youtube.com/watch?v=XEWdX97oQsI&list=PLClIEj4UNWSTJGzlXbvnx4WRLw7hQNyXC)).
 
 ### 2. Титульный экран
 * **Настройки:** Графика, звук, управление.
